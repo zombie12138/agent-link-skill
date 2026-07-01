@@ -1,0 +1,8 @@
+{
+  "name": "agentlink",
+  "description": "Share agent rules, reviewed memory notes, and compatible skills across Claude Code, Codex, and other coding agents.",
+  "author": {
+    "name": "zombie12138",
+    "url": "https://github.com/zombie12138"
+  }
+}

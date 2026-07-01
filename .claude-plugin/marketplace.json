@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "agentlink",
+  "description": "Share agent rules, reviewed memory notes, and compatible skills across coding agents.",
+  "owner": {
+    "name": "zombie12138",
+    "url": "https://github.com/zombie12138"
+  },
+  "plugins": [
+    {
+      "name": "agentlink",
+      "description": "Create safe symlink layouts for shared AGENTS.md, CLAUDE.md, reviewed memory notes, and skills.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}
