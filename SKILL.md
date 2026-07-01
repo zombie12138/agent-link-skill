@@ -46,6 +46,10 @@ Map user requests narrowly:
 Do not infer a larger sequence. If the user asks only for rules, only sync
 rules. If the user asks only for skills, only sync skills.
 
+When a user says "repo skills/memory/rules", run repo rules and skills with the
+repo command, but do not assume memory is inside the repo. Memory is always an
+explicit path decision.
+
 ## Rules
 
 Rules are one file on each side.
@@ -109,11 +113,25 @@ Memory sync is only for reviewed Markdown-like files or directories the user
 intentionally wants to share. Do not sync generated databases, JSONL logs,
 session state, credentials, caches, plugin state, or temporary files.
 
-Prefer `pair` for memory. It links one file or one whole folder:
+Memory may live outside the repository. For example, Claude Code may keep
+project memory under a path like:
+
+```text
+~/.claude/projects/<encoded-project-path>/memory/
+```
+
+Do not guess the Codex destination for such memory. If the user asks to sync
+repo memory and no obvious repo-local memory path exists, report the discovered
+Claude memory path and ask for the Codex target path, or ask whether to skip
+memory.
+
+Prefer `pair` for memory after both paths are known. It links one file or one
+whole folder:
 
 ```bash
 python3 scripts/agentlink.py pair .claude/memory/MEMORY.md .codex/memory/MEMORY.md --dry-run
 python3 scripts/agentlink.py pair .claude/memory .codex/memory --dry-run
+python3 scripts/agentlink.py pair ~/.claude/projects/ENCODED_REPO/memory ~/.codex/memories/REPO --dry-run
 ```
 
 Use `dir-pairs` only when a whole-folder memory link is not suitable and the

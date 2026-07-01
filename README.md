@@ -114,6 +114,10 @@ pair CLAUDE_MEMORY_PATH CODEX_MEMORY_PATH
 dir-pairs CLAUDE_MEMORY_DIR CODEX_MEMORY_DIR
 ```
 
+Repo memory is not assumed to live in the repo. Claude Code may store project
+memory under `~/.claude/projects/<encoded-project-path>/memory/`; choose the
+Codex target path explicitly before linking it.
+
 ## Safety
 
 - Skills are not synced by linking the whole skills directory.
