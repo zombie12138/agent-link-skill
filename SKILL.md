@@ -1,6 +1,6 @@
 ---
 name: agentlink
-description: Share Claude Code and Codex rules, skills, and reviewed memory by symlinking existing files or skill entries. Use when the user asks to sync CLAUDE.md with AGENTS.md, global or repo skills, reviewed memory files/folders, /agentlink global, /agentlink repo, or explicit Claude/Codex path pairs.
+description: Share Claude Code and Codex rules, skills, Claude Code plugin skills, and reviewed memory by symlinking existing files or skill entries. Use when the user asks to sync CLAUDE.md with AGENTS.md, global or repo skills, Claude plugin skills, reviewed memory files/folders, /agentlink global, /agentlink repo, or explicit Claude/Codex path pairs.
 ---
 
 # Agentlink
@@ -9,10 +9,12 @@ Use this skill to let Claude Code and Codex share basic working context through
 symlinks. Do exactly the sync the user asked for; do not run unrelated sync
 steps.
 
-Agentlink has three sync strategies:
+Agentlink has four sync strategies:
 
 - **Rules**: link one rules file to one rules file.
 - **Skills**: link each skill entry separately, never the whole skills folder.
+- **Plugin skills**: expose Claude Code marketplace plugins with top-level
+  `SKILL.md` as Codex skills, one plugin at a time.
 - **Memory**: prefer linking one reviewed memory file or folder; only link
   children one by one when the user asks or a whole-folder link is not suitable.
 
@@ -36,10 +38,12 @@ Map user requests narrowly:
 | --- | --- |
 | Sync global Claude/Codex rules | `global rules` |
 | Sync global Claude/Codex skills entry by entry | `global skills` |
-| Sync global rules and skills | `global all` or `global` |
+| Sync global Claude plugin skills into Codex skills | `global plugin-skills` |
+| Sync global rules, skills, and plugin skills | `global all` or `global` |
 | Sync repo Claude/Codex rules | `repo rules --repo PATH` |
 | Sync repo Claude/Codex skills entry by entry | `repo skills --repo PATH` |
-| Sync repo rules and skills | `repo all --repo PATH` or `repo --repo PATH` |
+| Sync repo Claude plugin skills into Codex skills | `repo plugin-skills --repo PATH` |
+| Sync repo rules, skills, and plugin skills | `repo all --repo PATH` or `repo --repo PATH` |
 | Sync one reviewed memory file or one whole reviewed memory folder | `pair CLAUDE_PATH CODEX_PATH` |
 | Sync children of two reviewed memory folders | `dir-pairs CLAUDE_DIR CODEX_DIR` |
 
@@ -101,11 +105,48 @@ python3 scripts/agentlink.py repo skills --repo . --dry-run
 Notes:
 
 - `.system` is skipped.
+- Codex-side symlink entries are skipped by ordinary `skills` sync. Use
+  `plugin-skills` for plugin-backed Codex skill entries.
 - New skills are not discovered by an old symlink plan. Run Agentlink again
   after adding a skill.
-- Claude plugin skills are not converted automatically. If the user wants a
-  plugin skill shared, first make a normal Claude skill entry that points to it
-  with a distinct name such as `<skill-name>-sync`, then run the skills sync.
+- Plugin skills are handled by `plugin-skills`, not ordinary `skills`.
+
+## Plugin Skills
+
+Plugin skills are discovered from Claude Code marketplace plugin directories:
+
+```text
+~/.claude/plugins/marketplaces/<plugin>
+<repo>/.claude/plugins/marketplaces/<plugin>
+```
+
+Only process plugin directories with a top-level `SKILL.md`. Do not use
+`~/.claude/plugins/cache` as a source. Do not sync plugin runtime state, cache,
+sessions, credentials, JSONL logs, or generated files.
+
+Plugin skills are exposed to Codex as skill entries:
+
+```text
+~/.claude/plugins/marketplaces/<plugin>        ->  ~/.codex/skills/<plugin>
+<repo>/.claude/plugins/marketplaces/<plugin>  ->  <repo>/.agents/skills/<plugin>
+```
+
+Commands:
+
+```bash
+python3 scripts/agentlink.py global plugin-skills --dry-run
+python3 scripts/agentlink.py global plugin-skills --apply
+python3 scripts/agentlink.py repo plugin-skills --repo . --dry-run
+python3 scripts/agentlink.py repo plugin-skills --repo . --apply
+```
+
+Check and report every marketplace plugin separately:
+
+- Top-level `SKILL.md` and missing Codex target: plan or create a symlink.
+- Top-level `SKILL.md` and Codex target resolves to the same plugin: no-op.
+- Top-level `SKILL.md` and same-name Codex target points elsewhere: report a
+  conflict and do not overwrite.
+- No top-level `SKILL.md`: report skip.
 
 ## Memory
 

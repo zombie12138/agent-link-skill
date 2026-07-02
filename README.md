@@ -4,12 +4,13 @@ Agentlink helps Claude Code and Codex share the same basic working context with
 symlinks. It does not create a new canonical store. It links the agent artifacts
 you already have.
 
-Agentlink has three sync strategies:
+Agentlink has four sync strategies:
 
 | Strategy | What It Does |
 | --- | --- |
 | Rules | Links one rules file to one rules file, such as `CLAUDE.md` and `AGENTS.md`. |
 | Skills | Links each skill entry separately, preserving Codex-owned entries such as `.system`. |
+| Plugin Skills | Exposes Claude Code plugin skills with top-level `SKILL.md` as Codex skills, one plugin at a time. |
 | Memory | Links one reviewed memory file or folder first; links children one by one only when needed. |
 
 All operations are conservative:
@@ -75,6 +76,7 @@ Claude Code plugin:
 ```text
 /agentlink:agentlink dry-run global rules sync between Claude Code and Codex
 /agentlink:agentlink dry-run global skills sync between Claude Code and Codex
+/agentlink:agentlink dry-run global plugin skills sync between Claude Code and Codex
 /agentlink:agentlink dry-run repo rules and skills sync for this repository
 /agentlink:agentlink dry-run this memory pair: .claude/memory/MEMORY.md and .codex/memory/MEMORY.md
 ```
@@ -84,6 +86,7 @@ Codex:
 ```text
 Use $agentlink to dry-run global rules sync between Claude Code and Codex.
 Use $agentlink to dry-run global skills sync between Claude Code and Codex.
+Use $agentlink to dry-run global plugin skills sync between Claude Code and Codex.
 Use $agentlink to dry-run repo rules and skills sync for this repository.
 Use $agentlink to dry-run this memory pair: .claude/memory/MEMORY.md and .codex/memory/MEMORY.md.
 ```
@@ -107,6 +110,35 @@ Skills are entry pairs:
 <repo>/.claude/skills/<name>  <->  <repo>/.agents/skills/<name>
 ```
 
+Ordinary skills stay separate from plugin skills. Ordinary `skills` sync skips
+Codex-side symlink entries so generated or plugin-backed Codex entries are not
+synced back into Claude ordinary skills.
+
+Plugin skills are discovered from Claude Code plugin marketplace directories and
+linked one plugin at a time:
+
+```text
+~/.claude/plugins/marketplaces/<plugin>        ->  ~/.codex/skills/<plugin>
+<repo>/.claude/plugins/marketplaces/<plugin>  ->  <repo>/.agents/skills/<plugin>
+```
+
+Only marketplace plugin directories with a top-level `SKILL.md` are exposed as
+Codex skills. Agentlink does not use `~/.claude/plugins/cache` as a source and
+does not sync plugin runtime state, cache, sessions, credentials, JSONL logs, or
+other generated files.
+
+Commands:
+
+```bash
+python3 scripts/agentlink.py global plugin-skills --dry-run
+python3 scripts/agentlink.py global plugin-skills --apply
+python3 scripts/agentlink.py repo plugin-skills --repo . --dry-run
+python3 scripts/agentlink.py repo plugin-skills --repo . --apply
+```
+
+`global all` includes global rules, ordinary skills, and plugin skills. `repo
+all` includes repo rules, ordinary skills, and repo-local plugin skills.
+
 Memory is explicit:
 
 ```text
@@ -122,6 +154,10 @@ Codex target path explicitly before linking it.
 
 - Skills are not synced by linking the whole skills directory.
 - Codex `.system` skill entries are skipped and preserved.
+- Ordinary skills sync skips Codex-side symlink entries.
+- Plugin skills are checked plugin by plugin. A plugin without top-level
+  `SKILL.md` is reported as skipped. A same-name Codex skill that points
+  elsewhere is reported as a conflict and is not replaced.
 - New skills require running Agentlink again so the new entry can be linked.
 - For conflicts, the agent should show both paths and ask the user whether to
   manually merge, delete one side, move one side aside, or leave it unchanged.
