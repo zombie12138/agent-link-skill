@@ -1,4 +1,0 @@
-interface:
-  display_name: "Agentlink"
-  short_description: "Share agent rules and skills with symlinks"
-  default_prompt: "Use $agentlink to set up shared global or repo agent rules and skills."

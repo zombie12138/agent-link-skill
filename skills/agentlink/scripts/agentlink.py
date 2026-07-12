@@ -112,21 +112,6 @@ def skill_pairs(claude_dir: Path, codex_dir: Path) -> list[Pair]:
     ]
 
 
-def plugin_skill_pairs(claude_plugins_dir: Path, codex_skills_dir: Path, actions: list[str]) -> list[Pair]:
-    pairs: list[Pair] = []
-    if not claude_plugins_dir.is_dir():
-        actions.append(f"skip plugin-skills: no marketplace directory at {claude_plugins_dir}")
-        return pairs
-
-    for plugin in sorted(path for path in claude_plugins_dir.iterdir() if path.is_dir()):
-        skill_file = plugin / "SKILL.md"
-        if not skill_file.is_file():
-            actions.append(f"skip plugin-skill:{plugin.name}: no top-level SKILL.md")
-            continue
-        pairs.append(Pair(f"plugin-skill:{plugin.name}", plugin, codex_skills_dir / plugin.name))
-    return pairs
-
-
 def dir_child_pairs(label: str, claude_dir: Path, codex_dir: Path) -> list[Pair]:
     return [
         Pair(f"{label}:{name}", claude_dir / name, codex_dir / name)
@@ -146,7 +131,6 @@ def default_pairs(args: argparse.Namespace, notices: list[str], actions: list[st
         codex_rules = Path.home() / ".codex" / "AGENTS.md"
         claude_skills = Path.home() / ".claude" / "skills"
         codex_skills = Path.home() / ".codex" / "skills"
-        claude_plugins = Path.home() / ".claude" / "plugins" / "marketplaces"
     else:
         root, found = find_repo_root(expand(args.repo))
         if not found:
@@ -155,15 +139,12 @@ def default_pairs(args: argparse.Namespace, notices: list[str], actions: list[st
         codex_rules = root / "AGENTS.md"
         claude_skills = root / ".claude" / "skills"
         codex_skills = root / ".agents" / "skills"
-        claude_plugins = root / ".claude" / "plugins" / "marketplaces"
 
     pairs: list[Pair] = []
     if args.kind in ("rules", "all"):
         pairs.append(Pair("rules", claude_rules, codex_rules))
     if args.kind in ("skills", "all"):
         pairs.extend(skill_pairs(claude_skills, codex_skills))
-    if args.kind in ("plugin-skills", "all"):
-        pairs.extend(plugin_skill_pairs(claude_plugins, codex_skills, actions))
     return pairs
 
 
@@ -196,8 +177,8 @@ def validate_args(args: argparse.Namespace) -> int | None:
         if args.kind != "all" or len(args.items) != 2:
             print("ERROR: dir-pairs usage is: agentlink.py dir-pairs CLAUDE_DIR CODEX_DIR [--apply]", file=sys.stderr)
             return 2
-    elif args.kind not in ("rules", "skills", "plugin-skills", "all") or len(args.items) > 1:
-        print("ERROR: global/repo usage is: agentlink.py SCOPE [rules|skills|plugin-skills|all] [--apply]", file=sys.stderr)
+    elif args.kind not in ("rules", "skills", "all") or len(args.items) > 1:
+        print("ERROR: global/repo usage is: agentlink.py SCOPE [rules|skills|all] [--apply]", file=sys.stderr)
         return 2
     return None
 

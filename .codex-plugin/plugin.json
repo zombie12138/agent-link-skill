@@ -1,0 +1,28 @@
+{
+  "name": "agentlink",
+  "version": "0.1.0",
+  "description": "Share matching Claude Code and Codex rules, skills, and reviewed memory without changing artifact types.",
+  "author": {
+    "name": "zombie12138",
+    "url": "https://github.com/zombie12138"
+  },
+  "homepage": "https://github.com/zombie12138/agentlink",
+  "repository": "https://github.com/zombie12138/agentlink",
+  "license": "MIT",
+  "keywords": ["agents", "rules", "skills", "memory", "symlinks"],
+  "skills": "./skills",
+  "interface": {
+    "displayName": "Agentlink",
+    "shortDescription": "Share matching agent artifacts safely",
+    "longDescription": "Link matching Claude Code and Codex rules, skills, and reviewed memory while keeping plugins and agent definitions native to their host.",
+    "developerName": "zombie12138",
+    "category": "Productivity",
+    "capabilities": ["Interactive", "Write"],
+    "websiteURL": "https://github.com/zombie12138/agentlink",
+    "defaultPrompt": [
+      "Dry-run global rules and skills sync.",
+      "Dry-run repo rules and skills sync.",
+      "Dry-run an explicit reviewed memory pair."
+    ]
+  }
+}
